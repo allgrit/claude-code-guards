@@ -1,6 +1,6 @@
 {
   "name": "claude-code-guards",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Portable process guardrails for Claude Code — prevent AI agents from cutting corners",
   "main": "src/index.js",
   "bin": {

@@ -34,6 +34,9 @@ const cfg = loadConfig();
 
 const GUARD_FILES_RE = new RegExp(cfg.guardFiles);
 const READ_ONLY_RE = /^\s*(cat|head|tail|grep|wc|ls|file|stat|diff|less|more|node -e)\b/;
+const DEPLOY_RUN_RE = cfg.deployCommand
+  ? new RegExp(`^\\s*${esc(cfg.deployCommand)}`)
+  : null;
 const PROTECTED_RE = cfg.protectedFiles.length
   ? new RegExp(cfg.protectedFiles.map(esc).join('|'))
   : null;
@@ -171,7 +174,7 @@ function check(rawCmd) {
   if (GUARD_FILES_RE.test(rawCmd) && !inWT(rawCmd)) {
     for (const sub of rawCmd.split(/\s*(?:&&|\|\||;|\n)\s*/)) {
       const hasRedirect = /[^|]>[^>]/.test(sub) || /\btee\b/.test(sub);
-      if (GUARD_FILES_RE.test(sub) && (!READ_ONLY_RE.test(sub.trim()) || hasRedirect)) {
+      if (GUARD_FILES_RE.test(sub) && !(DEPLOY_RUN_RE && DEPLOY_RUN_RE.test(sub.trim())) && (!READ_ONLY_RE.test(sub.trim()) || hasRedirect)) {
         return block('Mutation of guard files / deploy.sh / .husky/ is blocked. Work in a worktree.');
       }
     }
