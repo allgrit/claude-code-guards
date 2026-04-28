@@ -4,7 +4,7 @@
   "description": "Portable process guardrails for Claude Code — prevent AI agents from cutting corners",
   "main": "src/index.js",
   "bin": {
-    "claude-code-guards": "./src/cli.js"
+    "claude-code-guards": "src/cli.js"
   },
   "repository": {
     "type": "git",
