@@ -10,7 +10,7 @@ const command = process.argv[2];
 if (!command || !['init', 'update'].includes(command)) {
   console.log('Usage: claude-code-guards <init|update>');
   console.log('');
-  console.log('  init   — Install guard hooks into the current project');
+  console.log('  init   — Install guard hooks + example config + tests');
   console.log('  update — Update guard hooks (preserves guards.config.json)');
   process.exit(1);
 }
@@ -37,7 +37,9 @@ function mergeSettings(settingsPath, hooksConfig) {
     try {
       existing = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     } catch {
-      console.log('  [!] Warning: existing settings.local.json is invalid JSON, overwriting');
+      console.log(
+        '  [!] Warning: existing settings.local.json is invalid JSON, overwriting'
+      );
     }
   }
 
@@ -72,17 +74,17 @@ console.log('');
 console.log('claude-code-guards ' + command);
 console.log('');
 
-// 1. Copy guard-bash.cjs
+// 1. Copy guard-bash.cjs → .claude/hooks/guard.cjs
 copyFile(
   path.join(templatesDir, 'guard-bash.cjs'),
-  path.join(cwd, '.claude/hooks', 'guard.cjs'),
+  path.join(cwd, '.claude', 'hooks', 'guard.cjs'),
   '.claude/hooks/guard.cjs'
 );
 
-// 2. Copy guard-edit.cjs
+// 2. Copy guard-edit.cjs → .claude/hooks/guard-edit.cjs
 copyFile(
   path.join(templatesDir, 'guard-edit.cjs'),
-  path.join(cwd, '.claude/hooks', 'guard-edit.cjs'),
+  path.join(cwd, '.claude', 'hooks', 'guard-edit.cjs'),
   '.claude/hooks/guard-edit.cjs'
 );
 
@@ -99,13 +101,28 @@ copyFile(
   'tests/guards/guard.test.ts'
 );
 
+// 5. Copy example config (init only, never overwrite existing)
+if (command === 'init') {
+  const configDest = path.join(cwd, '.claude', 'guards.config.json');
+  if (!fs.existsSync(configDest)) {
+    copyFile(
+      path.join(templatesDir, 'guards.config.json'),
+      configDest,
+      '.claude/guards.config.json (example — customize for your project)'
+    );
+  } else {
+    console.log('  [=] .claude/guards.config.json (already exists, kept)');
+  }
+}
+
 console.log('');
 console.log('Done! Guards installed.');
 console.log('');
-console.log('Optional: create .claude/guards.config.json to customize:');
-console.log('  - protectedFiles: files that cannot be deleted');
-console.log('  - sshHost: SSH hostname for deploy warnings');
-console.log('  - requireSpecPlan: enforce spec+plan for feat/ branches');
-console.log('  - requireVersionBump: enforce version bump on merge');
-console.log('');
-console.log('Run tests: npx vitest run tests/guards/guard.test.ts');
+if (command === 'init') {
+  console.log('Next steps:');
+  console.log(
+    '  1. Edit .claude/guards.config.json — set protectedFiles, sshHost, etc.'
+  );
+  console.log('  2. Run tests: npx vitest run tests/guards/guard.test.ts');
+  console.log('');
+}

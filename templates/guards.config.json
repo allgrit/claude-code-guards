@@ -1,0 +1,16 @@
+{
+  "protectedFiles": ["database.sqlite", "users.json"],
+  "immutablePaths": ["docs/specs", "docs/plans"],
+  "sshHost": "my-server",
+  "deployCommand": "bash deploy",
+  "requireVersionBump": true,
+  "requireSpecPlan": true,
+  "requireDocsSync": true,
+  "docsSyncCorePaths": "src/(core|shared)/(types|config)\\.ts",
+  "worktreePath": ".worktrees/",
+  "blockShellDelegation": true,
+  "blockCheckoutBranch": true,
+  "editGuardFiles": ["guard.cjs", "guard-edit.cjs", "deploy.sh"],
+  "editAllowPaths": ["\\/(docs|\\.claude|scripts)\\/", "CLAUDE\\.md$", "CHANGELOG\\.md$", "BACKLOG\\.md$"],
+  "editBlockPaths": ["\\/(src|tests)\\/", "package\\.json$"]
+}

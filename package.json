@@ -1,14 +1,32 @@
 {
   "name": "claude-code-guards",
   "version": "1.0.0",
-  "description": "Process guardrails for Claude Code — prevent AI agents from cutting corners",
+  "description": "Portable process guardrails for Claude Code — prevent AI agents from cutting corners",
   "main": "src/index.js",
   "bin": {
     "claude-code-guards": "./src/cli.js"
   },
-  "keywords": ["claude-code", "hooks", "guardrails", "ai-safety"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allgrit/claude-code-guards.git"
+  },
+  "keywords": [
+    "claude-code",
+    "hooks",
+    "guardrails",
+    "ai-safety",
+    "pre-tool-use",
+    "worktree"
+  ],
   "author": "allgrit",
   "license": "MIT",
   "type": "commonjs",
-  "files": ["src/", "templates/", "README.md"]
+  "files": [
+    "src/",
+    "templates/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
 }
