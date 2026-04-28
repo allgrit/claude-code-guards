@@ -37,6 +37,8 @@ Overwrites hook files but preserves your `guards.config.json`.
 | Force push | `--force`, `--force-with-lease`, `+refspec` | always on |
 | Guard self-protection | Mutation of guard.cjs, deploy.sh, .husky/, .claude/ | `guardFiles` |
 | Shell delegation | `bash -c`, `eval`, `sh -c` | `blockShellDelegation` |
+| /tmp/ script execution | `bash /tmp/x.sh`, `node /tmp/x.js`, etc. | always on |
+| Inline interpreter | `node -e`, `python3 -c`, `perl -e` (warn) | always on |
 | Hooks path | `git config core.hooksPath` | always on |
 | History rewrite | `rebase` on master, `update-ref`, `filter-branch` | always on |
 | Hard reset | `git reset --hard` on master | always on |
@@ -54,6 +56,7 @@ Overwrites hook files but preserves your `guards.config.json`.
 | Guard files on master | guard.cjs, guard-edit.cjs, deploy.sh | `editGuardFiles` |
 | .husky/ on master | Pre-commit hook files | always on |
 | .gitignore on master | Could hide guard files from git | always on |
+| /tmp/ script writes | Warn on Write to /tmp/*.{sh,js,py,ts,rb,pl} | always on |
 | settings.local.json | Warn only (hooks live here) | always on |
 
 **Always allowed:** docs/, .claude/, scripts/, CLAUDE.md, CHANGELOG.md, BACKLOG.md, worktree paths.

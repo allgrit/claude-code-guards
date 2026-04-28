@@ -33,7 +33,7 @@ function loadConfig() {
 const cfg = loadConfig();
 
 const GUARD_FILES_RE = new RegExp(cfg.guardFiles);
-const READ_ONLY_RE = /^\s*(cat|head|tail|grep|wc|ls|file|stat|diff|less|more|node -e.*spawnSync)\b/;
+const READ_ONLY_RE = /^\s*(cat|head|tail|grep|wc|ls|file|stat|diff|less|more|node -e)\b/;
 const PROTECTED_RE = cfg.protectedFiles.length
   ? new RegExp(cfg.protectedFiles.map(esc).join('|'))
   : null;
@@ -76,11 +76,13 @@ function ok() {
   return {};
 }
 
-function getBranch(cmd) {
+function getBranch(rawCmd) {
   try {
-    const m = cmd && cmd.match(/cd\s+"([^"]+)"/);
     const opts = { encoding: 'utf8', timeout: 3000 };
-    if (m) opts.cwd = m[1];
+    const cdMatch = rawCmd && rawCmd.match(/cd\s+"([^"]+)"/);
+    const gitCMatch = rawCmd && rawCmd.match(/git\s+-C\s+(\S+)/);
+    if (cdMatch) opts.cwd = cdMatch[1];
+    else if (gitCMatch) opts.cwd = gitCMatch[1];
     return execSync('git branch --show-current', opts).trim();
   } catch {
     return '';
@@ -131,8 +133,8 @@ function check(rawCmd) {
       );
     }
   }
-  if (/\bcp\b/.test(cmd) && /\bsrc\//.test(cmd) && !inWT(cmd)) {
-    const branch = getBranch(cmd);
+  if (/\bcp\b/.test(cmd) && /\bsrc\//.test(cmd) && !inWT(rawCmd)) {
+    const branch = getBranch(rawCmd);
     if (branch === 'master' || branch === 'main') {
       return block('Copying files to src/ on master is blocked. Work in a worktree.');
     }
@@ -178,6 +180,16 @@ function check(rawCmd) {
   // 4b2. Block: shell delegation
   if (cfg.blockShellDelegation && /\b(bash -c|sh -c|eval)\b/.test(cmd)) {
     return block('Shell delegation (bash -c / eval) is blocked \u2014 use direct commands.');
+  }
+
+  // 4b3. Block: script execution from /tmp/ (Write to /tmp then execute bypass)
+  if (/\b(bash|sh|node|python3?|perl|ruby)\s+\/tmp\//.test(rawCmd)) {
+    return block('Executing scripts from /tmp/ is blocked \u2014 possible guard bypass.');
+  }
+
+  // 4b4. Warn: interpreter -e/-c inline code (could construct dangerous commands dynamically)
+  if (/\b(node\s+-e|python3?\s+-c|perl\s+-e|ruby\s+-e)\b/.test(rawCmd)) {
+    return warn('Inline interpreter (-e/-c) \u2014 make sure you are not constructing dangerous commands dynamically.');
   }
 
   // 4c. Block: git config core.hooksPath

@@ -55,6 +55,14 @@ function checkEdit(filePath) {
 
   const p = filePath.replace(/\\/g, '/');
 
+  // Warn: Write to /tmp/ scripts (Write + Bash execute bypass vector)
+  if (/^\/tmp\/.*\.(sh|js|py|ts|rb|pl)$/.test(p)) {
+    return {
+      systemMessage:
+        '\u26a0\ufe0f Writing a script to /tmp/ \u2014 possible guard bypass. Make sure the file does not contain dangerous commands.',
+    };
+  }
+
   // Warn: settings.local.json edit
   if (/settings\.local\.json$/.test(p)) {
     return {

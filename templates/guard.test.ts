@@ -801,3 +801,61 @@ describe('guard-edit.cjs — edge cases', () => {
     expect(isBlocked(runEditGuard('C:\\project\\.worktrees\\feat\\package.json'))).toBe(false);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Audit v4 — temp dir execution + interpreter bypass
+// ═══════════════════════════════════════════════════════════════
+
+describe('guard.cjs — temp dir script execution blocked', () => {
+  it('blocks bash /tmp/script.sh', () => {
+    expect(isBlocked(runGuard('bash /tmp/evil.sh'))).toBe(true);
+  });
+  it('blocks node /tmp/script.js', () => {
+    expect(isBlocked(runGuard('node /tmp/exploit.js'))).toBe(true);
+  });
+  it('blocks sh /tmp/script.sh', () => {
+    expect(isBlocked(runGuard('sh /tmp/x.sh'))).toBe(true);
+  });
+  it('blocks python /tmp/script.py', () => {
+    expect(isBlocked(runGuard('python3 /tmp/x.py'))).toBe(true);
+  });
+  it('allows node src/server/index.ts (not /tmp/)', () => {
+    expect(isBlocked(runGuard('node src/server/index.ts'))).toBe(false);
+  });
+  it('allows bash scripts/backlog-status.sh (not /tmp/)', () => {
+    expect(isBlocked(runGuard('bash scripts/backlog-status.sh'))).toBe(false);
+  });
+  it('allows npx vitest run (not script from /tmp/)', () => {
+    expect(isBlocked(runGuard('npx vitest run'))).toBe(false);
+  });
+});
+
+describe('guard.cjs — interpreter -e/-c warns', () => {
+  it('warns on node -e', () => {
+    expect(hasWarning(runGuard('node -e "process.exit(0)"'))).toBe(true);
+  });
+  it('warns on python3 -c', () => {
+    expect(hasWarning(runGuard("python3 -c 'print(1)'"))).toBe(true);
+  });
+  it('warns on perl -e', () => {
+    expect(hasWarning(runGuard('perl -e "print 1"'))).toBe(true);
+  });
+  it('does not block node -e (warn only)', () => {
+    expect(isBlocked(runGuard('node -e "process.exit(0)"'))).toBe(false);
+  });
+});
+
+describe('guard-edit.cjs — temp dir script write warns', () => {
+  it('warns on Write to /tmp/*.sh', () => {
+    expect(hasWarning(runEditGuard('/tmp/evil.sh'))).toBe(true);
+  });
+  it('warns on Write to /tmp/*.js', () => {
+    expect(hasWarning(runEditGuard('/tmp/exploit.js'))).toBe(true);
+  });
+  it('warns on Write to /tmp/*.py', () => {
+    expect(hasWarning(runEditGuard('/tmp/script.py'))).toBe(true);
+  });
+  it('allows Write to project tests/', () => {
+    expect(hasWarning(runEditGuard('/project/.worktrees/feat/tests/test.ts'))).toBe(false);
+  });
+});
